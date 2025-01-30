@@ -18,7 +18,8 @@ webdriver_path = r"C:\\Users\\Hp\\Downloads\\chromedriver-win64 (2)\\chromedrive
 service = Service(webdriver_path)
 
 # Base URL for pagination
-base_url = "https://www.propertyfinder.ae/en/commercial-rent/properties-for-rent.html?page={page}"
+base_url = "https://www.propertyfinder.ae/en/buy/properties-for-sale.html?page={page}"
+            #https://www.propertyfinder.ae/en/rent/properties-for-rent.html
 
 def start_driver():
     return webdriver.Chrome(service=service, options=chrome_options)
@@ -29,19 +30,22 @@ def extract_property_details(card):
         verification = 'N/A'
         agent = 'N/A'
 
+        # Look for verification tag using its class
         verification_tag = card.find_elements(By.CSS_SELECTOR, '.tag-module_tag--verified__q3T28')
         if verification_tag:
             verification = verification_tag[0].text
 
+        # Look for agent tag using its class
         agent_tag = card.find_elements(By.CSS_SELECTOR, '.tag-module_tag--super-agent__zoolh')
         if agent_tag:
             agent = agent_tag[0].text
 
+        # Extract other details
         return {
             'Verification': verification,
             'Agent': agent,
             'Type': card.find_element(By.CSS_SELECTOR, '[data-testid="property-card-type"]').text,
-            'Rent': card.find_element(By.CSS_SELECTOR, '[data-testid="property-card-price"]').text,
+            'Price': card.find_element(By.CSS_SELECTOR, '[data-testid="property-card-price"]').text,
             'Location': card.find_element(By.CSS_SELECTOR, '[data-testid="property-card-location"]').text,
             'Bedroom': card.find_element(By.CSS_SELECTOR, '[data-testid="property-card-spec-bedroom"]').text if card.find_elements(By.CSS_SELECTOR, '[data-testid="property-card-spec-bedroom"]') else 'N/A',
             'Bathroom': card.find_element(By.CSS_SELECTOR, '[data-testid="property-card-spec-bathroom"]').text if card.find_elements(By.CSS_SELECTOR, '[data-testid="property-card-spec-bathroom"]') else 'N/A',
@@ -57,7 +61,7 @@ def save_to_csv(data, filename_prefix="property_data"):
 
     with open(filename, 'w', newline='', encoding='utf-8-sig') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=[
-            'Verification', 'Agent', 'Type', 'Rent', 
+            'Verification', 'Agent', 'Type', 'Price', 
             'Location', 'Bedroom', 'Bathroom', 'Area'
         ])
         writer.writeheader()
@@ -65,20 +69,23 @@ def save_to_csv(data, filename_prefix="property_data"):
 
     print(f"Successfully saved {len(data)} properties to {filename}")
 
-def scrape_properties(num_pages_to_scrape=100, chunk_size=20):
+# Main scraping logic
+def scrape_properties(num_pages_to_scrape=5, chunk_size=5):
     properties = []
     driver = start_driver()
 
     try:
         for page in range(1, num_pages_to_scrape + 1):
-            try:
-                print(f"Scraping page {page}...")
-                driver.get(base_url.format(page=page))
+            print(f"Scraping page {page}...")
+            driver.get(base_url.format(page=page))
 
+            try:
+                # Wait for property cards to load
                 WebDriverWait(driver, 15).until(
                     EC.presence_of_all_elements_located((By.CSS_SELECTOR, '.property-card-module_property-card__body__pTwgB'))
                 )
 
+                # Get all property cards on the page
                 property_cards = driver.find_elements(By.CSS_SELECTOR, '.property-card-module_property-card__body__pTwgB')
                 for card in property_cards:
                     if details := extract_property_details(card):
@@ -86,10 +93,7 @@ def scrape_properties(num_pages_to_scrape=100, chunk_size=20):
 
             except Exception as e:
                 print(f"Error on page {page}: {e}")
-                if "invalid session id" in str(e):
-                    print("Restarting browser due to invalid session...")
-                    driver.quit()
-                    driver = start_driver()
+                break
 
             # Restart driver periodically to avoid session issues
             if page % chunk_size == 0:
@@ -107,5 +111,5 @@ def scrape_properties(num_pages_to_scrape=100, chunk_size=20):
     return properties
 
 # Run the scraper
-all_properties = scrape_properties(num_pages_to_scrape=100, chunk_size=20)
+all_properties = scrape_properties(num_pages_to_scrape=5, chunk_size=5)
 save_to_csv(all_properties)
