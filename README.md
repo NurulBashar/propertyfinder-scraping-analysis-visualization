@@ -22,7 +22,7 @@ This project involves web scraping commercial rental property listings from **Pr
    - The cleaned data was visualized using **Tableau Public**.
    - **Tableau Dashboard URL:** [View Dashboard](https://public.tableau.com/views/capstone_project-01/Dashboard2?:language=en-US&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
    - **Dashboard Screenshot:**  
-     ![Tableau Dashboard](Tablaue%20Reprasentation.png)
+     ![Tableau Dashboard](Tablaue_Reprasentation.png)
 
 5. **Useful Links**
    - The **PropertyFinder URL** and **Tableau Dashboard URL** are stored in `usefulurl.txt`.
