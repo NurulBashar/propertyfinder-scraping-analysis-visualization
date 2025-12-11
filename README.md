@@ -1,4 +1,4 @@
-# Capstone Project - Web Scraping & Data Visualization
+# Property Finder Project - Web Scraping & Data Visualization
 
 ## Project Overview
 This project involves web scraping commercial rental property listings from **PropertyFinder.ae** using **Selenium**. The extracted data is then cleaned using **Jupyter Notebook** and visualized in **Tableau**.
